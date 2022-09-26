@@ -3,7 +3,7 @@ import mongoose, { mongo } from 'mongoose';
 import type {RespostaPadraoMsg} from '../types/RespostaPadraoMsg';
 
 export const conectarMongoDB = (handler : NextApiHandler) => 
-    async (req : NextApiRequest, res : NextApiResponse<RespostaPadraoMsg>) => {
+    async (req : NextApiRequest, res : NextApiResponse<RespostaPadraoMsg | any[]>) => {
 
     // verificar se o banco está conectado, se, continuar para endpoint ou prox middleware
     if(mongoose.connections[0].readyState){
