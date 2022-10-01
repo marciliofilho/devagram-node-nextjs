@@ -13,9 +13,9 @@ const handler = nc()
     .post(async (req: any, res: NextApiResponse<RespostaPadraoMsg>) => {
 
         try {
-            const {userId} = req.query;
+            const { userId } = req.query;
             const usuario = await UsuarioModel.findById(userId);
-            if(!usuario){
+            if (!usuario) {
                 return res.status(400).json({ erro: 'usuário não informado.' });
             }
 
@@ -34,11 +34,14 @@ const handler = nc()
 
             const image = await uploadImagemCosmic(req);
             const publicacao = {
-                idUsuario : usuario._id,
+                idUsuario: usuario._id,
                 descricao,
-                foto : image.media.url,
-                data : new Date()
+                foto: image.media.url,
+                data: new Date()
             }
+            usuario.publicacoes++;
+            await UsuarioModel.findByIdAndUpdate({ _id: usuario._id }, usuario);
+
             await PublicacaoModel.create(publicacao);
             return res.status(200).json({ msg: 'Publicação criada com sucesso.' });
 
