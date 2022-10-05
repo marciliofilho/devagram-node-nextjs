@@ -4,6 +4,7 @@ import { conectarMongoDB } from '../../middlewares/conectarMongoDB';
 import { UsuarioModel } from '../../models/UsuarioModel';
 import { validarTokenJWT } from '../../middlewares/validarTokenJWT';
 import { SeguidorModel } from '../../models/SeguidorModel';
+import { politicaCORS } from '../../middlewares/politicaCORS';
 
 const endpointSeguir = async (req: NextApiRequest, res: NextApiResponse<RespostaPadraoMsg>) => {
     try {
@@ -26,7 +27,7 @@ const endpointSeguir = async (req: NextApiRequest, res: NextApiResponse<Resposta
                 //sinal que ja sigo esse usuário
 
                 euJaSigoEsseUsuario.forEach(async (e: any) => await SeguidorModel.findByIdAndDelete({ _id: e._id }));
-                
+
                 usuarioLogado.seguindo--;
                 await UsuarioModel.findByIdAndUpdate({ _id: usuarioLogado._id }, usuarioLogado);
 
@@ -61,4 +62,4 @@ const endpointSeguir = async (req: NextApiRequest, res: NextApiResponse<Resposta
     }
 }
 
-export default validarTokenJWT(conectarMongoDB(endpointSeguir));
+export default politicaCORS(validarTokenJWT(conectarMongoDB(endpointSeguir)));
