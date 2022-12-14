@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { conectarMongoDB } from '../../middlewares/conectarMongoDB';
 import { politicaCORS } from '../../middlewares/politicaCORS';
 import { validarTokenJWT } from '../../middlewares/validarTokenJWT';
+import { SeguidorModel } from '../../models/SeguidorModel';
 import { UsuarioModel } from '../../models/UsuarioModel';
 import type { RespostaPadraoMsg } from '../../types/RespostaPadraoMsg';
 
@@ -13,19 +14,40 @@ const pesquisaEndpoint = async (req: NextApiRequest, res: NextApiResponse<Respos
                 if (!usuarioEncontrado) {
                     return res.status(400).json({ erro: 'Usuário não encontrado.' });
                 }
-                usuarioEncontrado.senha = null;
-                return res.status(200).json(usuarioEncontrado);
 
+                const user = {
+                    senha: null,
+                    segueEsseUsuario: false,
+                    nome: usuarioEncontrado.nome,
+                    email: usuarioEncontrado.email,
+                    _id: usuarioEncontrado._id,
+                    avatar: usuarioEncontrado.avatar,
+                    seguidores: usuarioEncontrado.seguidores,
+                    seguindo: usuarioEncontrado.seguindo,
+                    publicacoes: usuarioEncontrado.publicacoes,
+                } as any;
+
+                const segueEsseUsuario = await SeguidorModel.find({ usuarioId: req?.query?.userId, usuarioSeguidoId: usuarioEncontrado._id });
+                if (segueEsseUsuario && segueEsseUsuario.length > 0) {
+                    user.segueEsseUsuario = true;
+                }
+                return res.status(200).json(user);
             } else {
                 const { filtro } = req.query;
                 if (!filtro || filtro.length < 2) {
                     return res.status(400).json({ erro: 'Favor informar pelo menos 2 caracteres para a busca.' });
                 }
+
                 const usuariosEncontrados = await UsuarioModel.find({
                     $or: [
-                        { nome: { $regex: filtro, $options: 'i' } }
+                        { nome: { $regex: filtro, $options: 'i' } },
                     ]
                 });
+
+                usuariosEncontrados.forEach(userFound => {
+                    userFound.senha = null
+                });
+
                 return res.status(200).json(usuariosEncontrados);
             }
         }
